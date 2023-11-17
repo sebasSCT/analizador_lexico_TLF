@@ -21,3 +21,7 @@ class Categoria (Enum):
     TERMINAL = 18
     SEPARADOR = 19
     HEXADECIMAL = 20
+
+    def to_string(self):
+        
+        return f"{self.name}"
