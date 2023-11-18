@@ -9,6 +9,10 @@ class Analizador:
         self.indice = 0
         self.matriz = []
 
+        self.reservadas0 = ['tarea', 'clase']
+        self.reservadas1 = [ 'A', 'R', 'P']
+        self.reservadas2 = ['ent', 'dob', 'car', 'v', 'f']
+        self.reservadas3 = ['si', 'sino', 'bucle']
        
 
     def analizar (self, codigo):
@@ -46,10 +50,76 @@ class Analizador:
         Token = self.reservadas()
         if Token != None: return Token
 
+        #extraer operadores aritmeticos
+        Token = self.aritmeticos()
+        if Token != None: return Token
+
+        #extraer operadores comparacion
+        Token = self.comparacion()
+        if Token != None: return Token
+
+        #extaer operadores lógicos
+        Token = self.logicos()
+        if Token != None: return Token
+
+
         # No reconocido
         return self.noReconocido()
 
-   
+    def reservadas (self):
+
+        if self.codigo[self.indice] in ('_', '/', '#', '~'):
+
+            inicio = self.indice
+            valido = False
+
+            match (self.codigo[self.indice]):
+                case '_':
+                    for ind in self.reservadas0:
+                        if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
+                            self.indice += len(ind)
+                    valido = True
+                case '/':
+                    for ind in self.reservadas1:
+                        if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
+                            self.indice += len(ind)
+                    valido = True
+                case '#':
+                    for ind in self.reservadas2:
+                        if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
+                            self.indice += len(ind)
+                    valido = True
+                case '~':
+                    for ind in self.reservadas3:
+                        if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
+                            self.indice += len(ind)
+                    valido = True
+
+            return Token(self.codigo[inicio:self.indice + 1], Categoria.PALABRA_RESERVADA, self.posicion(inicio)) if valido else None
+        
+        return None
+
+    def identificadores (self):
+        
+        if self.codigo[self.indice] == '@':
+            inicio = self.indice
+
+            if not self.codigo[self.indice + 1].isalpha() : return None
+            self.indice += 1
+
+            while self.indice < len(self.codigo) and self.es_ascii(self.codigo[self.indice]):
+                if self.codigo[self.indice] in (' ', '@', '\n'): 
+                    self.indice -= 1
+                    break
+                self.indice += 1
+
+            if len(self.codigo[inicio: self.indice]) > 9:
+                self.indice = inicio
+                return None
+
+            return Token(self.codigo[inicio:self.indice + 1], Categoria.IDENTIFICADOR, self.posicion(inicio))
+        
+        return None
 
     def decimal (self):
         

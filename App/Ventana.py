@@ -65,16 +65,3 @@ class Ventana:
         columna3 = 'Línea: ' + str(token.posicion[0]) + ' Columna: ' + str(token.posicion[1])
         
         tabla.insert("", "end", values=(columna1, columna2, columna3))
-
-
-
-    
-
-    
-
-
-
-    
-
-  
-    
