@@ -19,6 +19,9 @@ class Analizador:
         # Operadores de comparación
         self.comparacion0 = ['mayor', 'menor', 'igual', 'diferente']
 
+        #hexadecimal letras
+        self.hexaletras = ['a', 'b', 'c', 'd', 'e', 'f']
+
     #Metodo principal
     def analizar (self, codigo):
 
@@ -82,12 +85,46 @@ class Analizador:
         Token = self.parentesisllaves()
         if Token != None: return Token
 
-        # extraer terminal
-        Token = self.terminal()
+        # extraer terminal y separador
+        Token = self.terminalseparador()
+        if Token != None: return Token
+
+        #extraer hexadecimal
+        Token = self.hexadecimal()
         if Token != None: return Token
 
         # No reconocido
         return self.noReconocido()
+
+    def hexadecimal (self):
+
+        if self.codigo[self.indice] == '&':
+
+            inicio = self.indice
+            
+            if self.indice + 2 < len(self.codigo):
+                if self.codigo[self.indice + 1].isdigit() or self.codigo[self.indice + 1] in self.hexaletras:
+                    self.indice += 1
+                    if self.codigo[inicio: self.indice + 1].isdigit() or self.codigo[self.indice + 1] in self.hexaletras:
+                        Token(self.codigo[inicio: self.indice + 1], Categoria.HEXADECIMAL, self.posicion(inicio))
+            
+            self.indice -= 1
+            if self.indice + 1 < len(self.codigo):
+                if self.codigo[self.indice + 1].isdigit() or self.codigo[self.indice + 1] in self.hexaletras:
+                    self.indice += 1
+                    return Token(self.codigo[inicio:self.indice + 1], Categoria.HEXADECIMAL, self.posicion(inicio))
+                
+        return None
+
+    def terminalseparador (self):
+        
+        match self.codigo[self.indice]:
+            case ';':
+                return Token(self.codigo[self.indice], Categoria.TERMINAL, self.posicion(self.indice))
+            case ',':
+                return Token(self.codigo[self.indice], Categoria.SEPARADOR, self.posicion(self.indice))
+        
+        return None
 
     def parentesisllaves (self):
         
@@ -124,6 +161,9 @@ class Analizador:
     def asignacion (self):
 
         inicio = self.indice
+    
+        if self.codigo[self.indice] == '=':
+            return Token(self.codigo[inicio: self.indice + 1], Categoria.OPERADOR_ASIGNACION, self.posicion(inicio))
         if (self.indice + 1 < len(self.codigo) and self.codigo[self.indice] in ('+', '-', '*', '/')):
             if (self.codigo[self.indice + 1] == '='):
                 return Token(self.codigo[inicio: self.indice], Categoria.OPERADOR_ASIGNACION, self.posicion(inicio))
@@ -208,7 +248,7 @@ class Analizador:
             self.indice += 1
 
             while self.indice < len(self.codigo) and self.es_ascii(self.codigo[self.indice]):
-                if self.codigo[self.indice] in (' ', '@', '\n'): 
+                if self.codigo[self.indice] in (' ', '@', '\n', ')', '(', '{', '}'): 
                     self.indice -= 1
                     break
                 self.indice += 1
