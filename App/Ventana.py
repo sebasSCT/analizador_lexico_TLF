@@ -38,8 +38,6 @@ class Ventana:
     def getCodigo(self, codigo, ventana):
         self.texto = codigo
 
-        print(codigo)
-        
         a = Analizador()
         tokens = a.analizar(self.texto)
 

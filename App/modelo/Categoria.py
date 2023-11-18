@@ -10,7 +10,7 @@ class Categoria (Enum):
     COMENTARIO_LINEA = 7
     COMENTARIO_BLOQUE = 8
     OPERADOR_ARITMETICO = 9
-    OPERADOR_RELACIONAL = 10
+    OPERADOR_COMPARACION = 10
     OPERADOR_LOGICO = 11
     OPERADOR_INCREMENTO = 12
     OPERADOR_DECREMENTO = 13
@@ -21,6 +21,7 @@ class Categoria (Enum):
     TERMINAL = 18
     SEPARADOR = 19
     HEXADECIMAL = 20
+    OPERADOR_ASIGNACION = 21
 
     def to_string(self):
         

@@ -71,15 +71,62 @@ class Analizador:
         if Token != None: return Token
 
         # extraer operadores de asignacion
-        #Token = self.asignacion()
-        #if Token != None: return Token
+        Token = self.asignacion()
+        if Token != None: return Token
 
         # extraer operadores de incremento/decremento
-        #Token = self.incdec()
-        #if Token != None: return Token
+        Token = self.incdec()
+        if Token != None: return Token
+
+        # extraer parentesis/llaves apertura/cierre/
+        Token = self.parentesisllaves()
+        if Token != None: return Token
+
+        # extraer terminal
+        Token = self.terminal()
+        if Token != None: return Token
 
         # No reconocido
         return self.noReconocido()
+
+    def parentesisllaves (self):
+        
+        match (self.codigo[self.indice]):
+            case '(':
+                return Token('(', Categoria.APERTURA_PARENTESIS, self.posicion(self.indice))
+            case ')':
+                return Token(')', Categoria.CIERRE_PARENTESIS, self.posicion(self.indice))
+            case '{':
+                return Token('{', Categoria.APERTURA_LLAVES, self.posicion(self.indice))
+            case '}':
+                return Token('}', Categoria.CIERRE_LLAVES, self.posicion(self.indice))
+        
+        return None
+
+    def incdec (self):
+
+        if (self.codigo[self.indice].isalpha()):
+            
+            inicio = self.indice
+
+            if (self.indice + 2 < len(self.codigo)):
+                 
+                match (self.codigo[inicio: self.indice + 3]):
+                    case 'inc':
+                        self.indice += 2
+                        return Token('inc', Categoria.OPERADOR_INCREMENTO, self.posicion(inicio))
+                    case 'dec':
+                        self.indice += 2
+                        return Token('dec', Categoria.OPERADOR_DECREMENTO, self.posicion(inicio))
+
+        return None
+
+    def asignacion (self):
+
+        inicio = self.indice
+        if (self.indice + 1 < len(self.codigo) and self.codigo[self.indice] in ('+', '-', '*', '/')):
+            if (self.codigo[self.indice + 1] == '='):
+                return Token(self.codigo[inicio: self.indice], Categoria.OPERADOR_ASIGNACION, self.posicion(inicio))
 
     def logicos (self):
 
@@ -106,7 +153,7 @@ class Analizador:
                 if (self.indice + len(op) < len(self.codigo) and self.codigo[inicio: inicio + len(op)]) == op:
                     self.indice += len(op)
                     if (self.codigo[self.indice] == '>'):
-                        return Token(self.codigo[inicio:self.indice + 1], Categoria.OPERADOR_RELACIONAL, self.posicion(inicio))
+                        return Token(self.codigo[inicio:self.indice + 1], Categoria.OPERADOR_COMPARACION, self.posicion(inicio))
 
         return None
     
