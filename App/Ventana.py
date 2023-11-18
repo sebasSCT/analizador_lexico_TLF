@@ -2,12 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 from Analizador import Analizador
 
+# Clase con la que se inicia la ventana y sus elementos
 class Ventana:
     def __init__(self, nombre, geometria):
         self.nombre = nombre
         self.geometria = geometria
 
         self.texto = None
+        self.tabla = None
 
     def iniciarVentana (self):
 
@@ -32,15 +34,19 @@ class Ventana:
         # Iniciar el bucle de eventos
         ventana.mainloop()
 
+    # Accion del boton
     def getCodigo(self, codigo, ventana):
         self.texto = codigo
 
         print(codigo)
-
+        
         a = Analizador()
         tokens = a.analizar(self.texto)
 
-        self.crearTabla(ventana, tokens)
+        if self.tabla:
+            self.tabla.destroy()
+
+        self.tabla =self.crearTabla(ventana, tokens)
         
     
     def crearTabla (self, ventana, tokens):
@@ -49,6 +55,7 @@ class Ventana:
         columnas = ("Palabra", "Categoría", "Posición")
         tabla = ttk.Treeview(ventana, columns=columnas, show="headings", selectmode="browse")
 
+        # Agregar las columnas a la tabla
         for columna in columnas:
             tabla.heading(columna, text=columna)
 
@@ -57,8 +64,10 @@ class Ventana:
         #Agregar tokens extraidos a la tabla
         for token in tokens:
             self.agregar_fila(token, tabla)
-        
 
+        return tabla
+        
+    # Funcion para agregar los tokens a la tabla
     def agregar_fila(self, token, tabla):
         columna1 = token.palabra
         columna2 = token.categoria.to_string()

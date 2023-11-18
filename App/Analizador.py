@@ -1,6 +1,7 @@
 from modelo.Token import Token
 from modelo.Categoria import Categoria
 
+#Clase en la que se analiza el codigo retornando los tokens encontrados
 class Analizador:
     def __init__(self):
         
@@ -9,12 +10,16 @@ class Analizador:
         self.indice = 0
         self.matriz = []
 
+        #Palabras reservadas
         self.reservadas0 = ['tarea', 'clase']
         self.reservadas1 = [ 'A', 'R', 'P']
         self.reservadas2 = ['ent', 'dob', 'car', 'v', 'f']
         self.reservadas3 = ['si', 'sino', 'bucle']
-       
 
+        # Operadores de comparación
+        self.comparacion0 = ['mayor', 'menor', 'igual', 'diferente']
+
+    #Metodo principal
     def analizar (self, codigo):
 
         self.codigo = codigo
@@ -22,16 +27,19 @@ class Analizador:
         
         print(repr(self.codigo))
 
+        # Se recorre el codigo fuente y se guardan los tokens que devuelve en cada iteracion
         while self.indice < len(self.codigo):
 
             self.tokens.append(self.extraerToken())
             self.indice += 1
         
+        # Se eliminan los tokens que esten nulos (None)
         for token in self.tokens:
             if token is None: self.tokens.remove(token)
     
         return self.tokens
 
+    # clase en la que se comprueba la categoria de los tokens encontrados
     def extraerToken (self):
 
         # extraer Entero
@@ -58,14 +66,57 @@ class Analizador:
         Token = self.comparacion()
         if Token != None: return Token
 
-        #extaer operadores lógicos
+        #extaer operadores logicos
         Token = self.logicos()
         if Token != None: return Token
 
+        # extraer operadores de asignacion
+        #Token = self.asignacion()
+        #if Token != None: return Token
+
+        # extraer operadores de incremento/decremento
+        #Token = self.incdec()
+        #if Token != None: return Token
 
         # No reconocido
         return self.noReconocido()
 
+    def logicos (self):
+
+        if (self.codigo[self.indice].isalpha()):
+
+            inicio = self.indice
+
+            if self.codigo[self.indice] in ('y', 'o'):
+                return Token(self.codigo[inicio:self.indice + 1], Categoria.OPERADOR_LOGICO, self.posicion(inicio))
+            if self.indice + 1 < len(self.codigo):
+                if self.codigo[inicio] == 'n' and self.codigo[self.indice + 1] == 'o':
+                    self.indice += 1
+                    return Token(self.codigo[inicio:self.indice + 1], Categoria.OPERADOR_LOGICO, self.posicion(inicio))
+        
+        return None
+            
+    def comparacion (self):
+        
+        if (self.codigo[self.indice].isalpha()):
+
+            inicio = self.indice
+
+            for op in self.comparacion0:
+                if (self.indice + len(op) < len(self.codigo) and self.codigo[inicio: inicio + len(op)]) == op:
+                    self.indice += len(op)
+                    if (self.codigo[self.indice] == '>'):
+                        return Token(self.codigo[inicio:self.indice + 1], Categoria.OPERADOR_RELACIONAL, self.posicion(inicio))
+
+        return None
+    
+    def aritmeticos (self):
+        
+        if self.codigo[self.indice] in ('+', '-', '*', '/'):
+            return Token(self.codigo[self.indice], Categoria.OPERADOR_ARITMETICO, self.posicion(self.indice))
+
+        return None
+    
     def reservadas (self):
 
         if self.codigo[self.indice] in ('_', '/', '#', '~'):
@@ -78,22 +129,24 @@ class Analizador:
                     for ind in self.reservadas0:
                         if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
                             self.indice += len(ind)
-                    valido = True
+                            valido = True
                 case '/':
+                    if self.indice == len(self.codigo) - 1 and self.codigo[self.indice + 1] != '/':
+                        return None
                     for ind in self.reservadas1:
-                        if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
-                            self.indice += len(ind)
-                    valido = True
+                        if self.codigo[inicio + 2: inicio + 2 + len(ind)] == ind:
+                            self.indice += len(ind) + 1
+                            valido = True
                 case '#':
                     for ind in self.reservadas2:
                         if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
                             self.indice += len(ind)
-                    valido = True
+                            valido = True
                 case '~':
                     for ind in self.reservadas3:
                         if self.codigo[inicio + 1: inicio + 1 + len(ind)] == ind:
                             self.indice += len(ind)
-                    valido = True
+                            valido = True
 
             return Token(self.codigo[inicio:self.indice + 1], Categoria.PALABRA_RESERVADA, self.posicion(inicio)) if valido else None
         
@@ -168,7 +221,18 @@ class Analizador:
             return Token(self.codigo[self.indice:self.indice+1], Categoria.NO_RECONOCIDO, self.posicion(self.indice))
         
         return False
+    
+    # funcion para comprobar si el caracter ingresado pertenece a ASCII
+    def es_ascii (self, caracter):
         
+        try:
+
+            valor_ascii = ord(caracter)
+
+            return 0 <= valor_ascii <= 127
+        except TypeError:
+            return None
+
     # se inica la matriz que representa numericamente la posicion de los caracteres del codigo
     def iniciarMatriz (self, codigo):
         
